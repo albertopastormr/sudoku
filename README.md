@@ -1,7 +1,7 @@
 # sudoku
 ## About
 
-Terminal python sudoku game app which receives commands composed of three integers:
+Terminal python classic sudoku game app.
 
 ## Sudoku rules
 
