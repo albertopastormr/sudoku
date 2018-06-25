@@ -1,7 +1,7 @@
 from random import randint
 
 class ModelError(Exception):
-    """ Wraps exceptions occured at the model for the legibility"""
+    """ Wraps exceptions occured at the model for legibility"""
 
 class Cell:
 
@@ -150,11 +150,21 @@ class Controller():
         self.model = Game()
 
     def execute(self):
+        print('Welcome to a new game of Sudoku !\n')
         while(not self.model.end()):
-            pass
+            print(self.model.board)
+            row_selected = input('Type the row of your next play -->')
+            column_selected = input('Type the column of your next play -->')
+            element_selected = input('Type the element of your next play -->')
+            try:
+                self.model.place_element(row_selected,column_selected,element_selected)
+            except e:
+                print(e)
         
 if(__name__ == "__main__"):
-    # used for testing some methods
+    control = Controller()
+    control.execute()
+    """# used for testing some methods
     model_test_ob = Board()
     # testing some methods
     print(model_test_ob.get_square_index(0, 0))
@@ -170,4 +180,4 @@ if(__name__ == "__main__"):
     print(model_test_ob.get_square_index(6, 0))
     print(model_test_ob.get_square_index(6, 3))
     print(model_test_ob.get_square_index(6, 6))
-    print (model_test_ob)
+    print (model_test_ob)"""
