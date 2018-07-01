@@ -66,7 +66,7 @@ class Board:
 
     def place_element(self, x_index, y_index, elem):
         """
-        Place the object 'elem'(0-9 range) at the intersection x-y received by argument.
+        Place the object 'elem'(0-8 range) at the intersection x-y received by argument.
         Throws ModelError(user row-column-square counting) if it could not be completed.
         """
         if(self.is_possible_to_place_element(x_index, y_index, elem)):
@@ -82,14 +82,16 @@ class Board:
 
     def is_possible_to_place_element(self, x_index, y_index, elem):
         if(x_index >= self._rows_size or x_index < 0 or y_index >= self._columns_size or y_index < 0):
-            raise ModelError("row or column selection out of range (x:{},y:{})".format(x_index, y_index))
+            raise ModelError("row or column selection out of range (x:{},y:{})".format(x_index + 1, y_index + 1))
+        if(self._board[x_index][y_index].value is not -1):
+            raise ModelError("already an element at row {}, column{})".format(x_index + 1, y_index + 1))
         if(self.row_picks_list[x_index][elem]):
-            raise ModelError("element {} already in use in the selected row {}".format(elem, x_index + 1))
+            raise ModelError("element {} already in use in the selected row {}".format(elem + 1, x_index + 1))
         if(self.column_picks_list[y_index][elem]):
-            raise ModelError("element {} already in use in the selected column {}".format(elem, x_index + 1))
+            raise ModelError("element {} already in use in the selected column {}".format(elem + 1, y_index + 1))
         square_index = self.get_square_index(x_index,y_index)
         if(self.square_picks_list[square_index][elem]):
-            raise ModelError("element {} already in use in the square {}".format(elem, square_index + 1))
+            raise ModelError("element {} already in use in the square {}".format(elem + 1, square_index + 1))
         return True
 
     def get_square_index(self, x_index, y_index):
@@ -150,20 +152,25 @@ class Controller():
         self.model = Game()
 
     def execute(self):
-        print('Welcome to a new game of Sudoku !\n')
+        print('Welcome to a new game of Sudoku !\nUse row -1 and column -1 to exit the game')
         while(not self.model.end()):
             print(self.model.board)
-            row_selected = input('Type the row of your next play -->')
-            column_selected = input('Type the column of your next play -->')
-            element_selected = input('Type the element of your next play -->')
+            row_selected = int(input('Type the row of your next play [1, 9]-->'))
+            column_selected = int(input('Type the column of your next play [1, 9]-->'))
+            if(row_selected is -1 and column_selected is -1):
+                print('Exiting game...\nThank you for playing!')
+                return
+            element_selected = int(input('Type the element of your next play [1, 9]-->'))
             try:
-                self.model.place_element(row_selected,column_selected,element_selected)
-            except e:
+                """ Prepares row, column and element for the range used at place_element() [0, 8] """
+                self.model.place_element(row_selected - 1, column_selected - 1, element_selected -1)
+            except ModelError as e:
                 print(e)
         
 if(__name__ == "__main__"):
+    # todo: delete_element() at board and menu() at controller
     control = Controller()
-    control.execute()
+    control.execute() 
     """# used for testing some methods
     model_test_ob = Board()
     # testing some methods
