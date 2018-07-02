@@ -66,7 +66,7 @@ class Board:
 
     def place_element(self, x_index, y_index, elem):
         """
-        Place the object 'elem'(0-8 range) at the intersection x-y received by argument.
+        Place 'elem'(0-8 range) at the intersection x-y received by argument.
         Throws ModelError(user row-column-square counting) if it could not be completed.
         """
         if(self.is_possible_to_place_element(x_index, y_index, elem)):
@@ -79,6 +79,27 @@ class Board:
             self.square_picks_count[square_index] += 1
             self._board[x_index][y_index].value = elem
             return True
+        else:
+            return False
+    
+    def delete_element(self, x_index, y_index):
+        """
+        Deletes element found at the intersection x-y received by argument.
+        Throws ModelError(user row-column-square counting) if it could not be completed.
+        """
+        if(self.is_possible_to_delete_element(x_index, y_index)):
+            elem = self._board[x_index][y_index].value
+            square_index = self.get_square_index(x_index,y_index)
+            self.row_picks_list[x_index][elem] = False
+            self.row_picks_count[x_index] -= 1
+            self.column_picks_list[y_index][elem] = False
+            self.column_picks_count[y_index] -= 1
+            self.square_picks_list[square_index][elem] = False
+            self.square_picks_count[square_index] -= 1
+            self._board[x_index][y_index].value = -1
+            return True
+        else:
+            return False
 
     def is_possible_to_place_element(self, x_index, y_index, elem):
         if(x_index >= self._rows_size or x_index < 0 or y_index >= self._columns_size or y_index < 0):
@@ -92,6 +113,13 @@ class Board:
         square_index = self.get_square_index(x_index,y_index)
         if(self.square_picks_list[square_index][elem]):
             raise ModelError("element {} already in use in the square {}".format(elem + 1, square_index + 1))
+        return True
+
+    def is_possible_to_delete_element(self, x_index, y_index):
+        if(x_index >= self._rows_size or x_index < 0 or y_index >= self._columns_size or y_index < 0):
+            raise ModelError("row or column selection out of range (x:{},y:{})".format(x_index + 1, y_index + 1))
+        if(self._board[x_index][y_index].value is -1):
+            raise ModelError("empty cell at row {}, column{})".format(x_index + 1, y_index + 1))
         return True
 
     def get_square_index(self, x_index, y_index):
@@ -138,6 +166,9 @@ class Game():
     def place_element(self, x_index, y_index, elem):
         self.board.place_element(x_index,y_index,elem)
     
+    def delete_element(self, x_index, y_index):
+        self.board.delete_element(x_index, y_index)
+    
     def end(self):
         return self.board.win() or self.board.lose()
 
@@ -152,20 +183,34 @@ class Controller():
         self.model = Game()
 
     def execute(self):
-        print('Welcome to a new game of Sudoku !\nUse row -1 and column -1 to exit the game')
+        print('Welcome to a new game of Sudoku !\n\nUse row -1 and column -1 to cancel a play')
         while(not self.model.end()):
             print(self.model.board)
-            row_selected = int(input('Type the row of your next play [1, 9]-->'))
-            column_selected = int(input('Type the column of your next play [1, 9]-->'))
-            if(row_selected is -1 and column_selected is -1):
-                print('Exiting game...\nThank you for playing!')
+            option_selected = int(input('Select your next play:\n1. Place number\n2. Delete number\n0. Exit\n-->'))
+            if(option_selected is 1):
+                row_selected = int(input('Type the row of your next play [1, 9]-->'))
+                column_selected = int(input('Type the column of your next play [1, 9]-->'))
+                if(row_selected is not -1 and column_selected is not -1):
+                    element_selected = int(input('Type the element of your next play [1, 9]-->'))
+                    try:
+                        """ Prepares row, column and element for the range used at place_element() [0, 8] """
+                        self.model.place_element(row_selected - 1, column_selected - 1, element_selected -1)
+                    except ModelError as e:
+                        print(e)
+            elif(option_selected is 2):
+                row_selected = int(input('Type the row of your next play [1, 9]-->'))
+                column_selected = int(input('Type the column of your next play [1, 9]-->'))
+                if(row_selected is not -1 and column_selected is not -1):
+                    try:
+                        """ Prepares row and columm for the range used at delete_element() [0, 8] """
+                        self.model.delete_element(row_selected - 1, column_selected - 1)
+                    except ModelError as e:
+                        print(e)
+            elif(option_selected is 0):
+                print('Exiting the game... Thank you for playing !')
                 return
-            element_selected = int(input('Type the element of your next play [1, 9]-->'))
-            try:
-                """ Prepares row, column and element for the range used at place_element() [0, 8] """
-                self.model.place_element(row_selected - 1, column_selected - 1, element_selected -1)
-            except ModelError as e:
-                print(e)
+            else:
+                print('ERROR: Unknown command')
         
 if(__name__ == "__main__"):
     # todo: delete_element() at board and menu() at controller
